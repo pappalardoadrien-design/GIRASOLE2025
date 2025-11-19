@@ -1,0 +1,1442 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Audit Qualité - Azemar</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f7fa;
+            padding: 15px;
+            font-size: 15px;
+            line-height: 1.5;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #2c5aa0 0%, #1a3a6b 100%);
+            color: white;
+            padding: 25px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 22px;
+            margin-bottom: 8px;
+        }
+        
+        .header .centrale-info {
+            font-size: 14px;
+            opacity: 0.9;
+            margin-top: 10px;
+        }
+        
+        .header .centrale-info strong {
+            color: #ffd700;
+        }
+        
+        /* INDICATEUR SAUVEGARDE */
+        .save-indicator {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #4caf50;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: bold;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            z-index: 1000;
+            display: none;
+            animation: fadeIn 0.3s;
+        }
+        
+        .save-indicator.show {
+            display: block;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .progress-bar {
+            background: #e0e0e0;
+            height: 6px;
+            border-radius: 3px;
+            margin: 20px 25px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            background: linear-gradient(90deg, #4caf50, #8bc34a);
+            height: 100%;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        
+        .section {
+            padding: 25px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+        
+        .section:last-child {
+            border-bottom: none;
+        }
+        
+        .section-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #2c5aa0;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .section-icon {
+            font-size: 24px;
+        }
+        
+        .section-subtitle {
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 20px;
+            font-style: italic;
+        }
+        
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        @media (min-width: 600px) {
+            .info-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+        
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        
+        .input-group label {
+            font-weight: 600;
+            color: #555;
+            font-size: 13px;
+        }
+        
+        .input-group input,
+        .input-group select {
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 15px;
+            width: 100%;
+        }
+        
+        .check-item {
+            background: #f9fafb;
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+            transition: all 0.3s ease;
+        }
+        
+        .check-item.checked {
+            background: #f0fdf4;
+            border-color: #86efac;
+        }
+        
+        .check-item.non-conforme {
+            background: #fef2f2;
+            border-color: #fca5a5;
+        }
+        
+        .check-item-header {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+        
+        .check-item-header input[type="checkbox"] {
+            width: 24px;
+            height: 24px;
+            margin-top: 2px;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+        
+        .check-item-header label {
+            font-weight: 600;
+            font-size: 15px;
+            color: #374151;
+            cursor: pointer;
+            line-height: 1.4;
+        }
+        
+        .conformite-select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            margin-bottom: 10px;
+            background: white;
+        }
+        
+        textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            min-height: 80px;
+            resize: vertical;
+            font-family: inherit;
+        }
+        
+        .photo-zone {
+            margin-top: 12px;
+            padding: 12px;
+            background: white;
+            border-radius: 8px;
+            border: 2px dashed #d1d5db;
+        }
+        
+        .photo-zone label {
+            display: block;
+            font-weight: 600;
+            color: #2563eb;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+        
+        .photo-input {
+            width: 100%;
+            padding: 8px;
+            font-size: 14px;
+        }
+        
+        .photo-preview {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .photo-preview img {
+            width: 100%;
+            height: 100px;
+            object-fit: cover;
+            border-radius: 6px;
+            border: 2px solid #e5e7eb;
+        }
+        
+        .btn {
+            width: 100%;
+            padding: 15px 20px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+        }
+        
+        .btn-success {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+        }
+        
+        .btn-success:active {
+            transform: scale(0.98);
+        }
+        
+        .btn-secondary {
+            background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+            color: white;
+        }
+        
+        .alert {
+            background: #fef3c7;
+            border: 2px solid #fbbf24;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 15px;
+            font-size: 13px;
+            color: #92400e;
+        }
+        
+        .footer {
+            background: #f9fafb;
+            padding: 20px;
+            text-align: center;
+            font-size: 12px;
+            color: #6b7280;
+            line-height: 1.6;
+        }
+    
+        /* SÉPARATION VISUELLE NORMATIF VS CDC */
+        .section.normatif {
+            background: #fefefe;
+            border-left: 5px solid #dc2626;
+        }
+        
+        .section.bonnes-pratiques {
+            background: #fef9f3;
+            border-left: 5px solid #f59e0b;
+        }
+        
+        .section.normatif .section-title {
+            color: #dc2626;
+        }
+        
+        .section.bonnes-pratiques .section-title {
+            color: #f59e0b;
+        }
+        
+        .badge-norm {
+            display: inline-block;
+            background: #dc2626;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+        
+        .badge-bp {
+            display: inline-block;
+            background: #f59e0b;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+        
+        .section-ref {
+            font-size: 12px;
+            color: #666;
+            font-style: italic;
+            margin-top: 5px;
+            padding: 8px;
+            background: rgba(255,255,255,0.5);
+            border-radius: 6px;
+        }
+
+    </style>
+</head>
+<body>
+    <!-- INDICATEUR SAUVEGARDE -->
+    <div id="saveIndicator" class="save-indicator">
+        ✅ Sauvegarde automatique OK
+    </div>
+    
+    <div class="container">
+        <!-- HEADER -->
+        <div class="header">
+            <h1>📋 Audit Qualité Centrale PV - Girasole 2025</h1>
+            <div class="centrale-info">
+                <strong>ID 83705</strong> | Azemar | <strong>319.41 kWc</strong> | Type: Bâtiment à construire - C
+            </div>
+        </div>
+        
+        <!-- BARRE PROGRESSION -->
+        <div class="progress-bar">
+            <div id="progressFill" class="progress-fill"></div>
+        </div>
+        
+        <!-- SECTION INFO AUDIT -->
+        <div class="section">
+            <div class="section-title">
+                <span class="section-icon">📝</span>
+                Informations Audit
+            </div>
+            <div class="info-grid">
+                <div class="input-group">
+                    <label>Auditeur</label>
+                    <input type="text" id="auditeur" placeholder="Nom auditeur">
+                </div>
+                <div class="input-group">
+                    <label>Date audit</label>
+                    <input type="date" id="date_audit">
+                </div>
+            </div>
+        </div>
+
+        <!-- SECTION 1: ONDULEURS -->
+        <div class="section normatif">
+            <div class="section-title">
+                <span class="section-icon">⚡</span>
+                1. ONDULEURS & PUISSANCE<span class="badge-norm">OBLIGATOIRE RÉGLEMENTAIRE</span>
+            </div>
+            <div class="section-ref">📜 Normes : IEC 62446-3 | NF C 15-100 § 712 | UTE C 15-712-1</div>
+            </div>
+            
+            <div class="check-item">
+                <div class="check-item-header">
+                    <input type="checkbox" data-point-id="ond_etat">
+                    <label>État général onduleur(s) (visuel, identification, IP)</label>
+                </div>
+                <select class="conformite-select" data-point-id="ond_etat">
+                    <option value="">-- Conformité --</option>
+                    <option value="conforme">✅ Conforme</option>
+                    <option value="non_conforme">❌ Non conforme</option>
+                    <option value="so">⚪ S.O.</option>
+                </select>
+                <textarea data-point-id="ond_etat" placeholder="Marque, modèle, nombre, état général..."></textarea>
+                <div class="photo-zone">
+                    <label>📷 Photos onduleur(s) (vue générale + plaques)</label>
+                    <input type="file" accept="image/*" capture="environment" class="photo-input" data-point-id="ond_etat" multiple>
+                    <div class="photo-preview" data-point-id="ond_etat"></div>
+                </div>
+            </div>
+            
+            <div class="check-item">
+                <div class="check-item-header">
+                    <input type="checkbox" data-point-id="ond_fonction">
+                    <label>Onduleur(s) en fonctionnement (LED, affichage, production)</label>
+                </div>
+                <select class="conformite-select" data-point-id="ond_fonction">
+                    <option value="">-- Conformité --</option>
+                    <option value="conforme">✅ Conforme</option>
+                    <option value="non_conforme">❌ Non conforme</option>
+                    <option value="so">⚪ S.O.</option>
+                </select>
+                <textarea data-point-id="ond_fonction" placeholder="Production affichée, messages erreur..."></textarea>
+                <div class="photo-zone">
+                    <label>📷 Photos écrans onduleurs (affichages)</label>
+                    <input type="file" accept="image/*" capture="environment" class="photo-input" data-point-id="ond_fonction" multiple>
+                    <div class="photo-preview" data-point-id="ond_fonction"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- SECTION 2: MODULES PV -->
+        <div class="section normatif">
+            <div class="section-title">
+                <span class="section-icon">☀️</span>
+                2. MODULES PHOTOVOLTAÏQUES<span class="badge-norm">OBLIGATOIRE RÉGLEMENTAIRE</span>
+            </div>
+            <div class="section-ref">📜 Normes : IEC 62446-3 | NF C 15-100 § 712 | UTE C 15-712-1</div>
+            </div>
+            
+            <div class="check-item">
+                <div class="check-item-header">
+                    <input type="checkbox" data-point-id="mod_etat">
+                    <label>État général modules (visuel, propreté, casse, ombres)</label>
+                </div>
+                <select class="conformite-select" data-point-id="mod_etat">
+                    <option value="">-- Conformité --</option>
+                    <option value="conforme">✅ Conforme</option>
+                    <option value="non_conforme">❌ Non conforme</option>
+                    <option value="so">⚪ S.O.</option>
+                </select>
+                <textarea data-point-id="mod_etat" placeholder="Propreté, dégâts visibles, ombres portées..."></textarea>
+                <div class="photo-zone">
+                    <label>📷 Photos modules (vue générale + détails si anomalies)</label>
+                    <input type="file" accept="image/*" capture="environment" class="photo-input" data-point-id="mod_etat" multiple>
+                    <div class="photo-preview" data-point-id="mod_etat"></div>
+                </div>
+            </div>
+            
+            <div class="check-item">
+                <div class="check-item-header">
+                    <input type="checkbox" data-point-id="mod_fixation">
+                    <label>Qualité fixations modules (serrages, corrosion)</label>
+                </div>
+                <select class="conformite-select" data-point-id="mod_fixation">
+                    <option value="">-- Conformité --</option>
+                    <option value="conforme">✅ Conforme</option>
+                    <option value="non_conforme">❌ Non conforme</option>
+                    <option value="so">⚪ S.O.</option>
+                </select>
+                <textarea data-point-id="mod_fixation" placeholder="Serrages visibles, corrosion..."></textarea>
+                <div class="photo-zone">
+                    <label>📷 Photos fixations modules</label>
+                    <input type="file" accept="image/*" capture="environment" class="photo-input" data-point-id="mod_fixation" multiple>
+                    <div class="photo-preview" data-point-id="mod_fixation"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- SECTION 3: CÂBLAGE DC -->
+        <div class="section normatif">
+            <div class="section-title">
+                <span class="section-icon">🔌</span>
+                3. CÂBLAGE DC<span class="badge-norm">OBLIGATOIRE RÉGLEMENTAIRE</span>
+            </div>
+            <div class="section-ref">📜 Normes : IEC 62446-3 | NF C 15-100 § 712 | UTE C 15-712-1</div> (partie courant continu)
+            </div>
+            
+            <div class="check-item">
+                <div class="check-item-header">
+                    <input type="checkbox" data-point-id="cabl_dc_etat">
+                    <label>État général câblage DC (visuel, protections, rayons courbure)</label>
+                </div>
+                <select class="conformite-select" data-point-id="cabl_dc_etat">
+                    <option value="">-- Conformité --</option>
+                    <option value="conforme">✅ Conforme</option>
+                    <option value="non_conforme">❌ Non conforme</option>
+                    <option value="so">⚪ S.O.</option>
+                </select>
+                <textarea data-point-id="cabl_dc_etat" placeholder="État câbles, couleurs +/-, protections mécaniques..."></textarea>
+                <div class="photo-zone">
+                    <label>📷 Photos câblage DC (cheminements + connexions)</label>
+                    <input type="file" accept="image/*" capture="environment" class="photo-input" data-point-id="cabl_dc_etat" multiple>
+                    <div class="photo-preview" data-point-id="cabl_dc_etat"></div>
+                </div>
+            </div>
+            
+            <div class="check-item">
+                <div class="check-item-header">
+                    <input type="checkbox" data-point-id="cabl_dc_connect">
+                    <label>Qualité connecteurs DC (serrages, étanchéité, compatibilité)</label>
+                </div>
+                <select class="conformite-select" data-point-id="cabl_dc_connect">
+                    <option value="">-- Conformité --</option>
+                    <option value="conforme">✅ Conforme</option>
+                    <option value="non_conforme">❌ Non conforme</option>
+                    <option value="so">⚪ S.O.</option>
+                </select>
+                <textarea data-point-id="cabl_dc_connect" placeholder="Type connecteurs (MC4...), serrages, étanchéité..."></textarea>
+                <div class="photo-zone">
+                    <label>📷 Photos connecteurs DC</label>
+                    <input type="file" accept="image/*" capture="environment" class="photo-input" data-point-id="cabl_dc_connect" multiple>
+                    <div class="photo-preview" data-point-id="cabl_dc_connect"></div>
+                </div>
+            </div>
+            
+            <div class="check-item">
+                <div class="check-item-header">
+                    <input type="checkbox" data-point-id="cabl_dc_chemin">
+                    <label>Cheminements câbles DC (fixations, supports, qualité brassage)</label>
+                </div>
+                <select class="conformite-select" data-point-id="cabl_dc_chemin">
+                    <option value="">-- Conformité --</option>
+                    <option value="conforme">✅ Conforme</option>
+                    <option value="non_conforme">❌ Non conforme</option>
+                    <option value="so">⚪ S.O.</option>
+                </select>
+                <textarea data-point-id="cabl_dc_chemin" placeholder="Type cheminements (galva, PVC...), fixations, brassage..."></textarea>
+                <div class="photo-zone">
+                    <label>📷 Photos cheminements DC</label>
+                    <input type="file" accept="image/*" capture="environment" class="photo-input" data-point-id="cabl_dc_chemin" multiple>
+                    <div class="photo-preview" data-point-id="cabl_dc_chemin"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- SECTION 4: CÂBLAGE AC -->
+        <div class="section">
+            <div class="section-title">
+                <span class="section-icon">⚡</span>
+                4. CÂBLAGE AC (partie courant alternatif)
+            </div>
+            
+            <div class="check-item">
+                <div class="check-item-header">
+                    <input type="checkbox" data-point-id="cabl_ac_etat">
+                    <label>État général câblage AC (sections conformes plans, protections)</label>
+                </div>
+                <select class="conformite-select" data-point-id="cabl_ac_etat">
+                    <option value="">-- Conformité --</option>
+                    <option value="conforme">✅ Conforme</option>
+                    <option value="non_conforme">❌ Non conforme</option>
+                    <option value="so">⚪ S.O.</option>
+                </select>
+                <textarea data-point-id="cabl_ac_etat" placeholder="Sections câbles, protections mécaniques, couleurs phases..."></textarea>
+                <div class="photo-zone">
+                    <label>📷 Photos câblage AC</label>
+                    <input type="file" accept="image/*" capture="environment" class="photo-input" data-point-id="cabl_ac_etat" multiple>
+                    <div class="photo-preview" data-point-id="cabl_ac_etat"></div>
+                </div>
+            </div>
+            
+            <div class="check-item">
+                <div class="check-item-header">
+                    <input type="checkbox" data-point-id="cabl_ac_serrages">
+                    <label>Qualité serrages connexions AC (repérages, couples)</label>
+                </div>
+                <select class="conformite-select" data-point-id="cabl_ac_serrages">
+                    <option value="">-- Conformité --</option>
+                    <option value="conforme">✅ Conforme</option>
+                    <option value="non_conforme">❌ Non conforme</option>
+                    <option value="so">⚪ S.O.</option>
+                </select>
+                <textarea data-point-id="cabl_ac_serrages" placeholder="Repérages phases, serrages visibles, cosses..."></textarea>
+                <div class="photo-zone">
+                    <label>📷 Photos connexions AC (serrages + repérages)</label>
+                    <input type="file" accept="image/*" capture="environment" class="photo-input" data-point-id="cabl_ac_serrages" multiple>
+                    <div class="photo-preview" data-point-id="cabl_ac_serrages"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- SECTION 5: MISE À LA TERRE -->
+        <div class="section">
+            <div class="section-title">
+                <span class="section-icon">⚡</span>
+                5. MISE À LA TERRE & PROTECTION
+            </div>
+            
+            <div class="check-item">
+                <div class="check-item-header">
+                    <input type="checkbox" data-point-id="terre_continuite">
+                    <label>Continuité circuit terre (cheminement, crapauds, borniers laiton)</label>
+                </div>
+                <select class="conformite-select" data-point-id="terre_continuite">
+                    <option value="">-- Conformité --</option>
+                    <option value="conforme">✅ Conforme</option>
+                    <option value="non_conforme">❌ Non conforme</option>
+                    <option value="so">⚪ S.O.</option>
+                </select>
+                <textarea data-point-id="terre_continuite" placeholder="Cheminement terre visible, crapauds, borniers..."></textarea>
+                <div class="photo-zone">
+                    <label>📷 Photos circuit terre (cheminement + connexions)</label>
+                    <input type="file" accept="image/*" capture="environment" class="photo-input" data-point-id="terre_continuite" multiple>
+                    <div class="photo-preview" data-point-id="terre_continuite"></div>
+                </div>
+            </div>
+            
+            <div class="check-item">
+                <div class="check-item-header">
+                    <input type="checkbox" data-point-id="terre_equipot">
+                    <label>Équipotentialité structures métalliques</label>
+                </div>
+                <select class="conformite-select" data-point-id="terre_equipot">
+                    <option value="">-- Conformité --</option>
+                    <option value="conforme">✅ Conforme</option>
+                    <option value="non_conforme">❌ Non conforme</option>
+                    <option value="so">⚪ S.O.</option>
+                </select>
+                <textarea data-point-id="terre_equipot" placeholder="Liaisons terre structures, chassis modules..."></textarea>
+                <div class="photo-zone">
+                    <label>📷 Photos équipotentialité (liaisons métalliques)</label>
+                    <input type="file" accept="image/*" capture="environment" class="photo-input" data-point-id="terre_equipot" multiple>
+                    <div class="photo-preview" data-point-id="terre_equipot"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- SECTION 6: COFFRETS & TABLEAUX -->
+        <div class="section">
+            <div class="section-title">
+                <span class="section-icon">🔌</span>
+                6. COFFRETS AC/DC & TABLEAUX
+            </div>
+            
+            <div class="check-item">
+                <div class="check-item-header">
+                    <input type="checkbox" data-point-id="coffret_ac">
+                    <label>Coffret AC (état, étanchéité, identification)</label>
+                </div>
+                <select class="conformite-select" data-point-id="coffret_ac">
+                    <option value="">-- Conformité --</option>
+                    <option value="conforme">✅ Conforme</option>
+                    <option value="non_conforme">❌ Non conforme</option>
+                    <option value="so">⚪ S.O.</option>
+                </select>
+                <textarea data-point-id="coffret_ac" placeholder="IP, état général, repérages..."></textarea>
+                <div class="photo-zone">
+                    <label>📷 Photos coffret AC (intérieur + extérieur)</label>
+                    <input type="file" accept="image/*" capture="environment" class="photo-input" data-point-id="coffret_ac" multiple>
+                    <div class="photo-preview" data-point-id="coffret_ac"></div>
+                </div>
+            </div>
+            
+            <div class="check-item">
+                <div class="check-item-header">
+                    <input type="checkbox" data-point-id="coffret_dc">
+                    <label>Coffret DC (état, étanchéité, identification)</label>
+                </div>
+                <select class="conformite-select" data-point-id="coffret_dc">
+                    <option value="">-- Conformité --</option>
+                    <option value="conforme">✅ Conforme</option>
+                    <option value="non_conforme">❌ Non conforme</option>
+                    <option value="so">⚪ S.O.</option>
+                </select>
+                <textarea data-point-id="coffret_dc" placeholder="IP, état général, repérages..."></textarea>
+                <div class="photo-zone">
+                    <label>📷 Photos coffret DC (intérieur + extérieur)</label>
+                    <input type="file" accept="image/*" capture="environment" class="photo-input" data-point-id="coffret_dc" multiple>
+                    <div class="photo-preview" data-point-id="coffret_dc"></div>
+                </div>
+            </div>
+            
+            <div class="check-item">
+                <div class="check-item-header">
+                    <input type="checkbox" data-point-id="plans_tqc">
+                    <label>Plans TQC présents sur place</label>
+                </div>
+                <select class="conformite-select" data-point-id="plans_tqc">
+                    <option value="">-- Conformité --</option>
+                    <option value="conforme">✅ Conforme</option>
+                    <option value="non_conforme">❌ Non conforme</option>
+                    <option value="so">⚪ S.O.</option>
+                </select>
+                <textarea data-point-id="plans_tqc" placeholder="Plans disponibles, à jour..."></textarea>
+                <div class="photo-zone">
+                    <label>📷 Photos plans TQC</label>
+                    <input type="file" accept="image/*" capture="environment" class="photo-input" data-point-id="plans_tqc" multiple>
+                    <div class="photo-preview" data-point-id="plans_tqc"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- SECTION 7: REPÉRAGES & ÉTIQUETAGE -->
+        <div class="section">
+            <div class="section-title">
+                <span class="section-icon">🏷️</span>
+                7. REPÉRAGES & ÉTIQUETAGE
+            </div>
+            
+            <div class="check-item">
+                <div class="check-item-header">
+                    <input type="checkbox" data-point-id="reperage_qual">
+                    <label>Qualité repérages (sérigraphié, manuscrit, lisible)</label>
+                </div>
+                <select class="conformite-select" data-point-id="reperage_qual">
+                    <option value="">-- Conformité --</option>
+                    <option value="conforme">✅ Conforme</option>
+                    <option value="non_conforme">❌ Non conforme</option>
+                    <option value="so">⚪ S.O.</option>
+                </select>
+                <textarea data-point-id="reperage_qual" placeholder="Type repérages (sérigraphié pro, étiquettes manuscrites...), lisibilité..."></textarea>
+                <div class="photo-zone">
+                    <label>📷 Photos repérages (câbles, coffrets, strings)</label>
+                    <input type="file" accept="image/*" capture="environment" class="photo-input" data-point-id="reperage_qual" multiple>
+                    <div class="photo-preview" data-point-id="reperage_qual"></div>
+                </div>
+            </div>
+            
+            <div class="check-item">
+                <div class="check-item-header">
+                    <input type="checkbox" data-point-id="etiq_tension">
+                    <label>Étiquettes tension DC réglementaires (danger, valeurs)</label>
+                </div>
+                <select class="conformite-select" data-point-id="etiq_tension">
+                    <option value="">-- Conformité --</option>
+                    <option value="conforme">✅ Conforme</option>
+                    <option value="non_conforme">❌ Non conforme</option>
+                    <option value="so">⚪ S.O.</option>
+                </select>
+                <textarea data-point-id="etiq_tension" placeholder="Présence étiquettes danger DC, valeurs tensions indiquées..."></textarea>
+                <div class="photo-zone">
+                    <label>📷 Photos étiquettes tension DC</label>
+                    <input type="file" accept="image/*" capture="environment" class="photo-input" data-point-id="etiq_tension" multiple>
+                    <div class="photo-preview" data-point-id="etiq_tension"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- SECTION 8: TRANCHÉES & LIAISON AC -->
+        <div class="section">
+            <div class="section-title">
+                <span class="section-icon">🚧</span>
+                8. TRANCHÉES & LIAISON AC (Shelter → PDL)
+            </div>
+            
+            <div class="check-item">
+                <div class="check-item-header">
+                    <input type="checkbox" data-point-id="tranchee_conforme">
+                    <label>Tranchée AC conforme cahier charges (profondeur, rebouchage, fourreaux)</label>
+                </div>
+                <select class="conformite-select" data-point-id="tranchee_conforme">
+                    <option value="">-- Conformité --</option>
+                    <option value="conforme">✅ Conforme</option>
+                    <option value="non_conforme">❌ Non conforme</option>
+                    <option value="so">⚪ S.O.</option>
+                </select>
+                <textarea data-point-id="tranchee_conforme" placeholder="Profondeur, rebouchage correct, fourreaux étanches..."></textarea>
+                <div class="photo-zone">
+                    <label>📷 Photos tranchée AC (parcours + détails fourreaux)</label>
+                    <input type="file" accept="image/*" capture="environment" class="photo-input" data-point-id="tranchee_conforme" multiple>
+                    <div class="photo-preview" data-point-id="tranchee_conforme"></div>
+                </div>
+            </div>
+            
+            <div class="check-item">
+                <div class="check-item-header">
+                    <input type="checkbox" data-point-id="fourreaux_rebouchage">
+                    <label>Rebouchage fourreaux (étanchéité, obturateurs, mousse)</label>
+                </div>
+                <select class="conformite-select" data-point-id="fourreaux_rebouchage">
+                    <option value="">-- Conformité --</option>
+                    <option value="conforme">✅ Conforme</option>
+                    <option value="non_conforme">❌ Non conforme</option>
+                    <option value="so">⚪ S.O.</option>
+                </select>
+                <textarea data-point-id="fourreaux_rebouchage" placeholder="Qualité rebouchage, obturateurs présents, étanchéité..."></textarea>
+                <div class="photo-zone">
+                    <label>📷 Photos rebouchage fourreaux</label>
+                    <input type="file" accept="image/*" capture="environment" class="photo-input" data-point-id="fourreaux_rebouchage" multiple>
+                    <div class="photo-preview" data-point-id="fourreaux_rebouchage"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- SECTION 9: CONFORMITÉ DOCUMENTAIRE -->
+        <div class="section">
+            <div class="section-title">
+                <span class="section-icon">📄</span>
+                9. CONFORMITÉ DOCUMENTAIRE (Prescriptions Girasole)
+            </div>
+            
+            <div class="check-item">
+                <div class="check-item-header">
+                    <input type="checkbox" data-point-id="doc_autocontrole">
+                    <label>Autocontrôle installateur correctement renseigné</label>
+                </div>
+                <select class="conformite-select" data-point-id="doc_autocontrole">
+                    <option value="">-- Conformité --</option>
+                    <option value="conforme">✅ Conforme</option>
+                    <option value="non_conforme">❌ Non conforme</option>
+                    <option value="so">⚪ S.O.</option>
+                </select>
+                <textarea data-point-id="doc_autocontrole" placeholder="Présent, complet, signé..."></textarea>
+                <div class="photo-zone">
+                    <label>📷 Photos autocontrôle installateur</label>
+                    <input type="file" accept="image/*" capture="environment" class="photo-input" data-point-id="doc_autocontrole" multiple>
+                    <div class="photo-preview" data-point-id="doc_autocontrole"></div>
+                </div>
+            </div>
+            
+            <div class="check-item">
+                <div class="check-item-header">
+                    <input type="checkbox" data-point-id="doc_pv_reception">
+                    <label>PV réception lot PV signé Girasole + Installateur</label>
+                </div>
+                <select class="conformite-select" data-point-id="doc_pv_reception">
+                    <option value="">-- Conformité --</option>
+                    <option value="conforme">✅ Conforme</option>
+                    <option value="non_conforme">❌ Non conforme</option>
+                    <option value="so">⚪ S.O.</option>
+                </select>
+                <textarea data-point-id="doc_pv_reception" placeholder="Présent, signé toutes parties..."></textarea>
+                <div class="photo-zone">
+                    <label>📷 Photos PV réception (signatures)</label>
+                    <input type="file" accept="image/*" capture="environment" class="photo-input" data-point-id="doc_pv_reception" multiple>
+                    <div class="photo-preview" data-point-id="doc_pv_reception"></div>
+                </div>
+            </div>
+            
+            <div class="check-item">
+                <div class="check-item-header">
+                    <input type="checkbox" data-point-id="doc_cr_visite">
+                    <label>≥1 CR visite chantier lot PV rédigé par Girasole</label>
+                </div>
+                <select class="conformite-select" data-point-id="doc_cr_visite">
+                    <option value="">-- Conformité --</option>
+                    <option value="conforme">✅ Conforme</option>
+                    <option value="non_conforme">❌ Non conforme</option>
+                    <option value="so">⚪ S.O.</option>
+                </select>
+                <textarea data-point-id="doc_cr_visite" placeholder="Nombre CR disponibles, dates..."></textarea>
+                <div class="photo-zone">
+                    <label>📷 Photos CR visites chantier</label>
+                    <input type="file" accept="image/*" capture="environment" class="photo-input" data-point-id="doc_cr_visite" multiple>
+                    <div class="photo-preview" data-point-id="doc_cr_visite"></div>
+                </div>
+            </div>
+            
+            <div class="check-item">
+                <div class="check-item-header">
+                    <input type="checkbox" data-point-id="doc_cahier_tranchee">
+                    <label>Respect cahier charges tranchées fourni au bailleur</label>
+                </div>
+                <select class="conformite-select" data-point-id="doc_cahier_tranchee">
+                    <option value="">-- Conformité --</option>
+                    <option value="conforme">✅ Conforme</option>
+                    <option value="non_conforme">❌ Non conforme</option>
+                    <option value="so">⚪ S.O.</option>
+                </select>
+                <textarea data-point-id="doc_cahier_tranchee" placeholder="Cahier charges respecté, écarts constatés..."></textarea>
+                <div class="photo-zone">
+                    <label>📷 Photos cahier charges tranchées</label>
+                    <input type="file" accept="image/*" capture="environment" class="photo-input" data-point-id="doc_cahier_tranchee" multiple>
+                    <div class="photo-preview" data-point-id="doc_cahier_tranchee"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECTION TOITURE (DTU 40.35 + ETN) -->
+        <div class="section">
+            <div class="section-title">
+                <span class="section-icon">🏠</span>
+                10. AUDIT TOITURE (DTU 40.35 + ETN)
+            </div>
+            <div class="section-subtitle">Démontage minimum 25 panneaux - Contrôles montage/serrage/étanchéité</div>
+            
+            <div class="alert">
+                <strong>⛔ SÉCURITÉ ABSOLUE</strong><br>
+                Interdiction marcher sur panneaux. Échafaudages/nacelles obligatoires. Harnais si pente >10%.
+            </div>
+            
+            <div class="check-item">
+                <div class="check-item-header">
+                    <input type="checkbox" data-point-id="toit_demontage">
+                    <label>Démontage 25 panneaux minimum (choix pertinent 1er/dernier chaîne)</label>
+                </div>
+                <select class="conformite-select" data-point-id="toit_demontage">
+                    <option value="">-- Conformité --</option>
+                    <option value="conforme">✅ Conforme</option>
+                    <option value="non_conforme">❌ Non conforme</option>
+                    <option value="so">⚪ S.O.</option>
+                </select>
+                <textarea data-point-id="toit_demontage" placeholder="Nombre panneaux démontés, localisation..."></textarea>
+                <div class="photo-zone">
+                    <label>📷 Photos panneaux démontés (avant/pendant/après)</label>
+                    <input type="file" accept="image/*" capture="environment" class="photo-input" data-point-id="toit_demontage" multiple>
+                    <div class="photo-preview" data-point-id="toit_demontage"></div>
+                </div>
+            </div>
+            
+            <div class="check-item">
+                <div class="check-item-header">
+                    <input type="checkbox" data-point-id="toit_si_montage">
+                    <label>Qualité montage/serrage Système Intégration (SI) sur support</label>
+                </div>
+                <select class="conformite-select" data-point-id="toit_si_montage">
+                    <option value="">-- Conformité --</option>
+                    <option value="conforme">✅ Conforme</option>
+                    <option value="non_conforme">❌ Non conforme</option>
+                    <option value="so">⚪ S.O.</option>
+                </select>
+                <textarea data-point-id="toit_si_montage" placeholder="Conformité DTU 40.35, ETN, notice fabricant..."></textarea>
+                <div class="photo-zone">
+                    <label>📷 Photos montage SI (rails, crochets, serrages)</label>
+                    <input type="file" accept="image/*" capture="environment" class="photo-input" data-point-id="toit_si_montage" multiple>
+                    <div class="photo-preview" data-point-id="toit_si_montage"></div>
+                </div>
+            </div>
+            
+            <div class="check-item">
+                <div class="check-item-header">
+                    <input type="checkbox" data-point-id="toit_pan_serrage">
+                    <label>Qualité montage/serrage panneaux sur SI</label>
+                </div>
+                <select class="conformite-select" data-point-id="toit_pan_serrage">
+                    <option value="">-- Conformité --</option>
+                    <option value="conforme">✅ Conforme</option>
+                    <option value="non_conforme">❌ Non conforme</option>
+                    <option value="so">⚪ S.O.</option>
+                </select>
+                <textarea data-point-id="toit_pan_serrage" placeholder="Conformité notice montage panneau, couple serrage..."></textarea>
+                <div class="photo-zone">
+                    <label>📷 Photos fixations panneaux sur SI</label>
+                    <input type="file" accept="image/*" capture="environment" class="photo-input" data-point-id="toit_pan_serrage" multiple>
+                    <div class="photo-preview" data-point-id="toit_pan_serrage"></div>
+                </div>
+            </div>
+            
+            <div class="check-item">
+                <div class="check-item-header">
+                    <input type="checkbox" data-point-id="toit_fix_chemin">
+                    <label>Fixations cheminements câbles (étanchéité maintenue, support pertinent)</label>
+                </div>
+                <select class="conformite-select" data-point-id="toit_fix_chemin">
+                    <option value="">-- Conformité --</option>
+                    <option value="conforme">✅ Conforme</option>
+                    <option value="non_conforme">❌ Non conforme</option>
+                    <option value="so">⚪ S.O.</option>
+                </select>
+                <textarea data-point-id="toit_fix_chemin" placeholder="Percements étanchéifiés, fixations adaptées..."></textarea>
+                <div class="photo-zone">
+                    <label>📷 Photos fixations cheminements toiture</label>
+                    <input type="file" accept="image/*" capture="environment" class="photo-input" data-point-id="toit_fix_chemin" multiple>
+                    <div class="photo-preview" data-point-id="toit_fix_chemin"></div>
+                </div>
+            </div>
+            
+            <div class="check-item">
+                <div class="check-item-header">
+                    <input type="checkbox" data-point-id="toit_connecteurs">
+                    <label>Compatibilité connecteurs mâle/femelle (serrages, étanchéité, exposition ruissellement)</label>
+                </div>
+                <select class="conformite-select" data-point-id="toit_connecteurs">
+                    <option value="">-- Conformité --</option>
+                    <option value="conforme">✅ Conforme</option>
+                    <option value="non_conforme">❌ Non conforme</option>
+                    <option value="so">⚪ S.O.</option>
+                </select>
+                <textarea data-point-id="toit_connecteurs" placeholder="Type connecteurs (PVZH202B...), étanchéité..."></textarea>
+                <div class="photo-zone">
+                    <label>📷 Photos connecteurs toiture</label>
+                    <input type="file" accept="image/*" capture="environment" class="photo-input" data-point-id="toit_connecteurs" multiple>
+                    <div class="photo-preview" data-point-id="toit_connecteurs"></div>
+                </div>
+            </div>
+            
+            <div class="check-item">
+                <div class="check-item-header">
+                    <input type="checkbox" data-point-id="toit_cabl_dc">
+                    <label>Cheminement câbles DC (pas directement sur couverture, dans chemins câbles)</label>
+                </div>
+                <select class="conformite-select" data-point-id="toit_cabl_dc">
+                    <option value="">-- Conformité --</option>
+                    <option value="conforme">✅ Conforme</option>
+                    <option value="non_conforme">❌ Non conforme</option>
+                    <option value="so">⚪ S.O.</option>
+                </select>
+                <textarea data-point-id="toit_cabl_dc" placeholder="Câbles protégés, pas de contact direct couverture..."></textarea>
+                <div class="photo-zone">
+                    <label>📷 Photos cheminements câbles toiture</label>
+                    <input type="file" accept="image/*" capture="environment" class="photo-input" data-point-id="toit_cabl_dc" multiple>
+                    <div class="photo-preview" data-point-id="toit_cabl_dc"></div>
+                </div>
+            </div>
+            
+            <div class="check-item">
+                <div class="check-item-header">
+                    <input type="checkbox" data-point-id="toit_terre">
+                    <label>Raccordement terres (qualité, continuité, cheminement)</label>
+                </div>
+                <select class="conformite-select" data-point-id="toit_terre">
+                    <option value="">-- Conformité --</option>
+                    <option value="conforme">✅ Conforme</option>
+                    <option value="non_conforme">❌ Non conforme</option>
+                    <option value="so">⚪ S.O.</option>
+                </select>
+                <textarea data-point-id="toit_terre" placeholder="Liaisons terre visible, continuité, corrosion..."></textarea>
+                <div class="photo-zone">
+                    <label>📷 Photos raccordements terres toiture</label>
+                    <input type="file" accept="image/*" capture="environment" class="photo-input" data-point-id="toit_terre" multiple>
+                    <div class="photo-preview" data-point-id="toit_terre"></div>
+                </div>
+            </div>
+            
+            <div class="check-item">
+                <div class="check-item-header">
+                    <input type="checkbox" data-point-id="toit_etancheite">
+                    <label>Étanchéité globale toiture (pénétrations, passages, couverture)</label>
+                </div>
+                <select class="conformite-select" data-point-id="toit_etancheite">
+                    <option value="">-- Conformité --</option>
+                    <option value="conforme">✅ Conforme</option>
+                    <option value="non_conforme">❌ Non conforme</option>
+                    <option value="so">⚪ S.O.</option>
+                </select>
+                <textarea data-point-id="toit_etancheite" placeholder="État étanchéité générale, infiltrations constatées..."></textarea>
+                <div class="photo-zone">
+                    <label>📷 Photos étanchéité toiture (pénétrations + couverture)</label>
+                    <input type="file" accept="image/*" capture="environment" class="photo-input" data-point-id="toit_etancheite" multiple>
+                    <div class="photo-preview" data-point-id="toit_etancheite"></div>
+                </div>
+            </div>
+            
+            <div class="check-item">
+                <div class="check-item-header">
+                    <input type="checkbox" data-point-id="toit_conf_notice">
+                    <label>Conformité notice montage panneau (intégration, pas de dérogation)</label>
+                </div>
+                <select class="conformite-select" data-point-id="toit_conf_notice">
+                    <option value="">-- Conformité --</option>
+                    <option value="conforme">✅ Conforme</option>
+                    <option value="non_conforme">❌ Non conforme</option>
+                    <option value="so">⚪ S.O.</option>
+                </select>
+                <textarea data-point-id="toit_conf_notice" placeholder="Respect notice fabricant, dérogations constatées..."></textarea>
+                <div class="photo-zone">
+                    <label>📷 Photos conformité notice (détails montage)</label>
+                    <input type="file" accept="image/*" capture="environment" class="photo-input" data-point-id="toit_conf_notice" multiple>
+                    <div class="photo-preview" data-point-id="toit_conf_notice"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECTION FINALE: SYNTHÈSE & EXPORT -->
+        <div class="section">
+            <div class="section-title">
+                <span class="section-icon">📊</span>
+                11. SYNTHÈSE GLOBALE AUDIT
+            </div>
+            
+            <div class="check-item">
+                <textarea id="synthese_globale" placeholder="Synthèse générale : principaux constats, écarts majeurs, bonnes pratiques, recommandations..." style="min-height: 150px;"></textarea>
+            </div>
+            
+            <button class="btn btn-secondary" onclick="chargerAudit()">
+                📂 CHARGER AUDIT EXISTANT
+            </button>
+            
+            <button class="btn btn-success" onclick="exporterChecklist()">
+                💾 EXPORTER CHECKLIST + PHOTOS
+            </button>
+            
+            <p style="margin-top: 15px; font-size: 13px; color: #666; text-align: center;">
+                ✅ Sauvegarde automatique après chaque modification<br>
+                📸 Photos intégrées en Base64 dans le fichier JSON
+            </p>
+        </div>
+        
+        <div class="footer">
+            <strong>Diagnostic Photovoltaïque</strong><br>
+            3 rue d'Apollo, 31240 L'UNION<br>
+            ☎ 05.81.10.16.59 | ✉ contact@diagpv.fr<br>
+            Méthodologie IEC 62446-3 | NF C 15-100 | UTE C 15-712
+        </div>
+    </div>
+    
+    <script>
+        // STORAGE KEY
+        const STORAGE_KEY = 'audit_checklist_83705';
+        
+        // STRUCTURE DONNÉES
+        let auditData = {
+            centrale_id: "83705",
+            centrale_nom: "Azemar",
+            puissance_kwc: "319.41",
+            type_installation: "Bâtiment à construire - C",
+            a_toiture: true,
+            auditeur: "",
+            date_audit: "",
+            points: {},
+            photos: {},
+            synthese_globale: ""
+        };
+        
+        // ======================
+        // SAUVEGARDE AUTOMATIQUE
+        // ======================
+        
+        function sauvegarderAuto() {
+            try {
+                // Collecter données formulaire
+                auditData.auditeur = document.getElementById('auditeur').value;
+                auditData.date_audit = document.getElementById('date_audit').value;
+                auditData.synthese_globale = document.getElementById('synthese_globale').value;
+                
+                // Collecter tous les points
+                document.querySelectorAll('[data-point-id]').forEach(el => {
+                    const pointId = el.getAttribute('data-point-id');
+                    
+                    if (!auditData.points[pointId]) {
+                        auditData.points[pointId] = {
+                            checked: false,
+                            conformite: "",
+                            commentaire: ""
+                        };
+                    }
+                    
+                    if (el.type === 'checkbox') {
+                        auditData.points[pointId].checked = el.checked;
+                    } else if (el.tagName === 'SELECT') {
+                        auditData.points[pointId].conformite = el.value;
+                    } else if (el.tagName === 'TEXTAREA') {
+                        auditData.points[pointId].commentaire = el.value;
+                    }
+                });
+                
+                // Sauvegarder dans LocalStorage
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(auditData));
+                
+                // Afficher indicateur
+                showSaveIndicator();
+                
+                console.log('✅ Sauvegarde auto OK', auditData);
+            } catch (e) {
+                console.error('❌ Erreur sauvegarde', e);
+            }
+        }
+        
+        function showSaveIndicator() {
+            const indicator = document.getElementById('saveIndicator');
+            indicator.classList.add('show');
+            setTimeout(() => {
+                indicator.classList.remove('show');
+            }, 2000);
+        }
+        
+        // ======================
+        // CHARGEMENT DONNÉES
+        // ======================
+        
+        function chargerDonnees() {
+            try {
+                const saved = localStorage.getItem(STORAGE_KEY);
+                if (saved) {
+                    auditData = JSON.parse(saved);
+                    
+                    // Restaurer champs
+                    if (auditData.auditeur) document.getElementById('auditeur').value = auditData.auditeur;
+                    if (auditData.date_audit) document.getElementById('date_audit').value = auditData.date_audit;
+                    if (auditData.synthese_globale) document.getElementById('synthese_globale').value = auditData.synthese_globale;
+                    
+                    // Restaurer points
+                    Object.keys(auditData.points).forEach(pointId => {
+                        const point = auditData.points[pointId];
+                        
+                        const checkbox = document.querySelector(`input[type="checkbox"][data-point-id="${pointId}"]`);
+                        if (checkbox) checkbox.checked = point.checked;
+                        
+                        const select = document.querySelector(`select[data-point-id="${pointId}"]`);
+                        if (select) select.value = point.conformite || "";
+                        
+                        const textarea = document.querySelector(`textarea[data-point-id="${pointId}"]`);
+                        if (textarea) textarea.value = point.commentaire || "";
+                    });
+                    
+                    // Restaurer photos
+                    Object.keys(auditData.photos).forEach(pointId => {
+                        const preview = document.querySelector(`.photo-preview[data-point-id="${pointId}"]`);
+                        if (preview) {
+                            preview.innerHTML = '';
+                            auditData.photos[pointId].forEach(base64 => {
+                                const img = document.createElement('img');
+                                img.src = base64;
+                                preview.appendChild(img);
+                            });
+                        }
+                    });
+                    
+                    updateProgress();
+                    console.log('✅ Données chargées', auditData);
+                }
+            } catch (e) {
+                console.error('❌ Erreur chargement', e);
+            }
+        }
+        
+        // ======================
+        // GESTION PHOTOS
+        // ======================
+        
+        document.querySelectorAll('.photo-input').forEach(input => {
+            input.addEventListener('change', function(e) {
+                const pointId = this.getAttribute('data-point-id');
+                const preview = document.querySelector(`.photo-preview[data-point-id="${pointId}"]`);
+                
+                if (!auditData.photos[pointId]) {
+                    auditData.photos[pointId] = [];
+                }
+                
+                Array.from(this.files).forEach(file => {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const base64 = e.target.result;
+                        
+                        // Ajouter au storage
+                        auditData.photos[pointId].push(base64);
+                        
+                        // Afficher preview
+                        const img = document.createElement('img');
+                        img.src = base64;
+                        preview.appendChild(img);
+                        
+                        // Sauvegarder
+                        sauvegarderAuto();
+                    };
+                    reader.readAsDataURL(file);
+                });
+            });
+        });
+        
+        // ======================
+        // GESTION CONFORMITÉ
+        // ======================
+        
+        document.querySelectorAll('.conformite-select').forEach(select => {
+            select.addEventListener('change', function() {
+                const item = this.closest('.check-item');
+                item.classList.remove('checked', 'non-conforme');
+                
+                if (this.value === 'conforme') {
+                    item.classList.add('checked');
+                } else if (this.value === 'non_conforme') {
+                    item.classList.add('non-conforme');
+                }
+                
+                updateProgress();
+                sauvegarderAuto();
+            });
+        });
+        
+        // ======================
+        // GESTION CHECKBOXES
+        // ======================
+        
+        document.querySelectorAll('.check-item input[type="checkbox"]').forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                updateProgress();
+                sauvegarderAuto();
+            });
+        });
+        
+        // ======================
+        // GESTION TEXTAREAS & INPUTS
+        // ======================
+        
+        document.querySelectorAll('input, textarea, select').forEach(el => {
+            el.addEventListener('change', sauvegarderAuto);
+            el.addEventListener('input', debounce(sauvegarderAuto, 1000));
+        });
+        
+        // Debounce pour éviter trop de sauvegardes
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+        
+        // ======================
+        // BARRE PROGRESSION
+        // ======================
+        
+        function updateProgress() {
+            const total = document.querySelectorAll('.check-item').length;
+            const checked = document.querySelectorAll('.check-item input[type="checkbox"]:checked').length;
+            const percentage = total > 0 ? (checked / total) * 100 : 0;
+            document.getElementById('progressFill').style.width = percentage + '%';
+        }
+        
+        // ======================
+        // EXPORT JSON
+        // ======================
+        
+        function exporterChecklist() {
+            try {
+                // Sauvegarder avant export
+                sauvegarderAuto();
+                
+                // Compter photos
+                let totalPhotos = 0;
+                Object.keys(auditData.photos).forEach(k => {
+                    totalPhotos += auditData.photos[k].length;
+                });
+                
+                // Préparer export
+                const exportData = {
+                    ...auditData,
+                    export_date: new Date().toISOString(),
+                    version: "2.0_SERVEUR",
+                    stats: {
+                        total_points: document.querySelectorAll('.check-item').length,
+                        points_remplis: document.querySelectorAll('.check-item input[type="checkbox"]:checked').length,
+                        total_photos: totalPhotos
+                    }
+                };
+                
+                // Créer JSON
+                const jsonString = JSON.stringify(exportData, null, 2);
+                const blob = new Blob([jsonString], {type: 'application/json'});
+                
+                // Télécharger
+                const filename = `audit_83705_Azemar_${Date.now()}.json`;
+                
+                if (window.navigator && window.navigator.msSaveOrOpenBlob) {
+                    // IE
+                    window.navigator.msSaveOrOpenBlob(blob, filename);
+                } else {
+                    // Autres navigateurs
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = filename;
+                    document.body.appendChild(a);
+                    a.click();
+                    
+                    setTimeout(() => {
+                        document.body.removeChild(a);
+                        URL.revokeObjectURL(url);
+                    }, 100);
+                }
+                
+                // Notification
+                alert(`✅ Export réussi !\n\nFichier : ${filename}\n\nPhotos : ${totalPhotos} photos intégrées\n\nEnvoyez ce fichier JSON à DiagPV.`);
+                
+                console.log('✅ Export OK', exportData);
+            } catch (e) {
+                console.error('❌ Erreur export', e);
+                alert('⚠️ Erreur export : ' + e.message);
+            }
+        }
+        
+        // ======================
+        // CHARGER AUDIT EXISTANT
+        // ======================
+        
+        function chargerAudit() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+            
+            input.onchange = function(e) {
+                const file = e.target.files[0];
+                if (!file) return;
+                
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    try {
+                        const imported = JSON.parse(event.target.result);
+                        
+                        // Remplacer données
+                        auditData = imported;
+                        
+                        // Sauvegarder
+                        localStorage.setItem(STORAGE_KEY, JSON.stringify(auditData));
+                        
+                        // Recharger interface
+                        chargerDonnees();
+                        
+                        alert('✅ Audit chargé avec succès !');
+                    } catch (e) {
+                        alert('⚠️ Erreur chargement fichier : ' + e.message);
+                    }
+                };
+                reader.readAsText(file);
+            };
+            
+            input.click();
+        }
+        
+        // ======================
+        // INITIALISATION
+        // ======================
+        
+        window.addEventListener('load', function() {
+            // Charger données sauvegardées
+            chargerDonnees();
+            
+            // Sauvegarder toutes les 10 secondes (backup)
+            setInterval(sauvegarderAuto, 10000);
+            
+            console.log('✅ Checklist robuste initialisée - Centrale 83705');
+        });
+        
+        // Sauvegarder avant fermeture
+        window.addEventListener('beforeunload', function() {
+            sauvegarderAuto();
+        });
+    </script>
+</body>
+</html>
